@@ -30,14 +30,25 @@ export class JsStoreParser {
 	private extractStores(ast: any, filePath: string): StoreDefinition[] {
 		const stores: StoreDefinition[] = [];
 
+		// First pass: collect variable declarations for later resolution
+		const variableDeclarations = new Map<string, any>();
+		traverse(ast, {
+			VariableDeclarator: (path: any) => {
+				if (path.node.id.type === 'Identifier' && path.node.init) {
+					variableDeclarations.set(path.node.id.name, path.node.init);
+				}
+			}
+		});
+
+		// Second pass: find store() calls
 		traverse(ast, {
 			CallExpression: (path: any) => {
-				// Check if this is a store() call
+				// Check if this is a store() call (with or without generics)
 				if (
 					path.node.callee.type === 'Identifier' &&
 					path.node.callee.name === 'store'
 				) {
-					const store = this.parseStoreFromCall(path.node, filePath);
+					const store = this.parseStoreFromCall(path.node, filePath, variableDeclarations);
 					if (store) {
 						stores.push(store);
 					}
@@ -51,7 +62,11 @@ export class JsStoreParser {
 	/**
 	 * Parse store definition from a store() call
 	 */
-	private parseStoreFromCall(node: any, filePath: string): StoreDefinition | null {
+	private parseStoreFromCall(
+		node: any,
+		filePath: string,
+		variableDeclarations: Map<string, any>
+	): StoreDefinition | null {
 		if (!node.arguments || node.arguments.length < 2) {
 			return null;
 		}
@@ -63,8 +78,20 @@ export class JsStoreParser {
 			return null;
 		}
 
-		// Second argument is the store object
-		const storeArg = node.arguments[1];
+		// Second argument is the store object (could be inline or a variable reference)
+		let storeArg = node.arguments[1];
+
+		// If it's a variable reference, resolve it
+		if (storeArg.type === 'Identifier') {
+			const resolvedStore = variableDeclarations.get(storeArg.name);
+			if (resolvedStore) {
+				storeArg = resolvedStore;
+			} else {
+				console.log(`[WP Interactivity API] Could not resolve variable: ${storeArg.name}`);
+				return null;
+			}
+		}
+
 		if (storeArg.type !== 'ObjectExpression') {
 			return null;
 		}
