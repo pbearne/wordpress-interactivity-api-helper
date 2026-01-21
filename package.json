@@ -5,6 +5,7 @@
   "version": "0.1.0",
   "publisher": "ryanwelcher",
   "license": "GPL-3.0",
+  "icon": "icon.png",
   "repository": {
     "type": "git",
     "url": "https://github.com/ryanwelcher/vscode-iapi-helper"
