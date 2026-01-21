@@ -75,7 +75,7 @@ export function activate(context: vscode.ExtensionContext) {
 		}
 	}
 
-	// Validate documents for duplicate directives
+	// Validate documents for duplicate directives on change
 	context.subscriptions.push(
 		vscode.workspace.onDidChangeTextDocument(event => {
 			const document = event.document;
@@ -84,6 +84,26 @@ export function activate(context: vscode.ExtensionContext) {
 			}
 		})
 	);
+
+	// Validate documents when they are opened or become visible
+	context.subscriptions.push(
+		vscode.window.onDidChangeActiveTextEditor(editor => {
+			if (editor) {
+				const document = editor.document;
+				if (document.languageId === 'php' || document.languageId === 'html') {
+					duplicateValidator.validateDocument(document);
+				}
+			}
+		})
+	);
+
+	// Validate the active document on activation
+	if (vscode.window.activeTextEditor) {
+		const document = vscode.window.activeTextEditor.document;
+		if (document.languageId === 'php' || document.languageId === 'html') {
+			duplicateValidator.validateDocument(document);
+		}
+	}
 
 	// Register refresh command
 	context.subscriptions.push(

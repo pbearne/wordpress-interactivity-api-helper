@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Test Duplicate Directive Detection</title>
+</head>
+<body>
+    <!-- Test Case 1: Duplicate data-wp-text (should show warning) -->
+    <div data-wp-interactive="myPlugin" data-wp-text="state.value" data-wp-text="state.otherValue">
+        Duplicate text directives
+    </div>
+
+    <!-- Test Case 2: Duplicate data-wp-bind--src with same suffix (should show warning) -->
+    <img data-wp-bind--src="state.image" data-wp-bind--src="state.otherImage">
+
+    <!-- Test Case 3: Multiple data-wp-bind with different suffixes (should be OK) -->
+    <img data-wp-bind--src="state.image" data-wp-bind--alt="state.altText">
+
+    <!-- Test Case 4: Duplicate data-wp-context (should show warning) -->
+    <div data-wp-context='{"foo": 1}' data-wp-context='{"bar": 2}'>
+        Duplicate context
+    </div>
+
+    <!-- Test Case 5: Multiple data-wp-on--click with different IDs (should be OK) -->
+    <button data-wp-on--click="actions.doSomething" data-wp-on--click="actions.doOther">
+        Multiple click handlers
+    </button>
+
+    <!-- Test Case 6: Duplicate data-wp-show (should show warning) -->
+    <div data-wp-show="state.visible" data-wp-show="state.isShown">
+        Duplicate show directives
+    </div>
+</body>
+</html>

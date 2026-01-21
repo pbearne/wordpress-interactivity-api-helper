@@ -28,11 +28,80 @@ export class DuplicateValidator {
 
 		const diagnostics: vscode.Diagnostic[] = [];
 
-		// Parse the document and find all elements with directives
-		// For now, we'll validate as we find elements during completion
-		// A full document scan would be more comprehensive but also more expensive
+		// Parse the entire document to find all elements with duplicate directives
+		const text = document.getText();
+
+		// Find all opening tags in the document
+		const tagRegex = /<(\w+)([^>]*)>/g;
+		let match;
+
+		while ((match = tagRegex.exec(text)) !== null) {
+			const attributesText = match[2];
+			const tagStart = match.index;
+
+			// Extract all directives from this tag's attributes
+			const directives = this.extractDirectivesFromAttributes(
+				attributesText,
+				tagStart,
+				document
+			);
+
+			// Check for duplicates on this element
+			const violations = this.checkDuplicates(directives);
+			diagnostics.push(...violations.map(v => {
+				const diagnostic = new vscode.Diagnostic(
+					v.range,
+					v.message,
+					vscode.DiagnosticSeverity.Warning
+				);
+				diagnostic.source = 'WordPress Interactivity API';
+				return diagnostic;
+			}));
+		}
 
 		this.diagnosticCollection.set(document.uri, diagnostics);
+	}
+
+	/**
+	 * Extract directives from an attributes string
+	 */
+	private extractDirectivesFromAttributes(
+		attributesText: string,
+		tagStartOffset: number,
+		document: vscode.TextDocument
+	): DirectiveInfo[] {
+		const directives: DirectiveInfo[] = [];
+
+		// Match all data-wp-* attributes
+		const attrRegex = /(data-wp-[\w-]+)\s*=\s*["']([^"']*)["']/g;
+		let match;
+
+		while ((match = attrRegex.exec(attributesText)) !== null) {
+			const name = match[1];
+			const value = match[2];
+			const baseName = name.split('--')[0];
+			const suffix = name.includes('--') ? name.split('--').slice(1).join('--') : undefined;
+
+			// Calculate the range of this attribute in the document
+			const attrStartInTag = match.index;
+			const attrStart = tagStartOffset + attrStartInTag;
+			const attrEnd = attrStart + match[0].length;
+
+			const range = new vscode.Range(
+				document.positionAt(attrStart),
+				document.positionAt(attrEnd)
+			);
+
+			directives.push({
+				name,
+				baseName,
+				suffix,
+				value,
+				range
+			});
+		}
+
+		return directives;
 	}
 
 	/**
@@ -113,9 +182,18 @@ export class DuplicateValidator {
 			}
 
 			// For directives that allow multiple with unique IDs (event handlers, watch, etc.)
-			// These are allowed, so no violation
 			if (definition.allowMultipleWithUniqueId) {
-				// No validation needed - multiple instances are explicitly allowed
+				// Check if this exact directive name (including suffix) already exists
+				const fullName = directive.name;
+				if (seen.has(fullName)) {
+					// This is a duplicate - suggest using ---id
+					violations.push({
+						range: directive.range,
+						message: `"${fullName}" is already defined on this element. To add multiple instances, use unique identifiers: "${fullName}---id1", "${fullName}---id2".`
+					});
+				} else {
+					seen.set(fullName, directive);
+				}
 				continue;
 			}
 		}
