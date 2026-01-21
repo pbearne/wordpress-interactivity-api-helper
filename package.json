@@ -1,0 +1,90 @@
+{
+  "name": "wordpress-interactivity-api-helper",
+  "displayName": "WordPress Interactivity API Helper",
+  "description": "Intelligent autocomplete for WordPress Interactivity API directives with duplicate detection and context-aware suggestions",
+  "version": "0.1.0",
+  "publisher": "ryanwelcher",
+  "engines": {
+    "vscode": "^1.85.0"
+  },
+  "categories": [
+    "Programming Languages",
+    "Snippets",
+    "Linters"
+  ],
+  "keywords": [
+    "wordpress",
+    "interactivity-api",
+    "autocomplete",
+    "php",
+    "html"
+  ],
+  "activationEvents": [
+    "onLanguage:php",
+    "onLanguage:html"
+  ],
+  "main": "./dist/extension.js",
+  "contributes": {
+    "configuration": {
+      "title": "WordPress Interactivity API Helper",
+      "properties": {
+        "wpInteractivityAPI.enableDirectiveCompletion": {
+          "type": "boolean",
+          "default": true,
+          "description": "Enable autocomplete for data-wp-* directives"
+        },
+        "wpInteractivityAPI.enableValueCompletion": {
+          "type": "boolean",
+          "default": true,
+          "description": "Enable autocomplete for directive values (state/context/actions)"
+        },
+        "wpInteractivityAPI.enableDuplicateWarnings": {
+          "type": "boolean",
+          "default": true,
+          "description": "Show warnings for duplicate directives (severity: warning)"
+        },
+        "wpInteractivityAPI.parseInlineContexts": {
+          "type": "boolean",
+          "default": true,
+          "description": "Parse inline data-wp-context attributes for context property suggestions"
+        }
+      }
+    },
+    "commands": [
+      {
+        "command": "wpInteractivityAPI.refreshStores",
+        "title": "WordPress Interactivity API: Refresh Store Cache"
+      },
+      {
+        "command": "wpInteractivityAPI.showStores",
+        "title": "WordPress Interactivity API: Show Available Stores"
+      }
+    ]
+  },
+  "scripts": {
+    "vscode:prepublish": "npm run package",
+    "compile": "webpack",
+    "watch": "webpack --watch",
+    "package": "webpack --mode production --devtool hidden-source-map",
+    "lint": "eslint src --ext ts"
+  },
+  "devDependencies": {
+    "@types/babel__traverse": "^7.20.5",
+    "@types/node": "^20.11.0",
+    "@types/vscode": "^1.85.0",
+    "@typescript-eslint/eslint-plugin": "^6.19.0",
+    "@typescript-eslint/parser": "^6.19.0",
+    "@vscode/test-electron": "^2.3.9",
+    "eslint": "^8.56.0",
+    "ts-loader": "^9.5.1",
+    "typescript": "^5.3.3",
+    "webpack": "^5.89.0",
+    "webpack-cli": "^5.1.4"
+  },
+  "dependencies": {
+    "@babel/parser": "^7.23.9",
+    "@babel/traverse": "^7.23.9",
+    "node-html-parser": "^6.1.12",
+    "php-parser": "^3.1.5"
+  }
+}

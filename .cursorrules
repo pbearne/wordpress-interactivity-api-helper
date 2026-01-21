@@ -1,0 +1,131 @@
+# VSCode Extension: WordPress Interactivity API Helper
+
+## Project Overview
+This is a VSCode extension that provides intelligent autocomplete and validation for WordPress Interactivity API directives in PHP and HTML files.
+
+## Key Technologies
+- TypeScript 5.3
+- VSCode Extension API 1.85+
+- Webpack 5 (bundling)
+- php-parser (PHP AST parsing)
+- @babel/parser (JavaScript/TypeScript AST parsing)
+- node-html-parser (HTML parsing)
+
+## Architecture Summary
+
+### Entry Point
+- `src/extension.ts` - Main activation function, registers all providers and commands
+
+### Core Features
+1. **Directive Autocomplete** - Suggests data-wp-* directives as you type
+2. **Value Autocomplete** - Suggests state/context/actions/callbacks from detected stores
+3. **Store Detection** - Parses PHP `wp_interactivity_state()` and JS `store()` calls
+4. **Duplicate Validation** - Warns about improperly duplicated directives
+5. **Directory-Scoped Scanning** - Only scans files in same directory for performance
+
+### Key Design Patterns
+- **Completion Providers**: VSCode's CompletionItemProvider interface
+- **Registry Pattern**: Central StoreRegistry for managing discovered stores
+- **Parser Strategy**: Separate parsers for PHP, JS, and inline contexts
+- **Directory Scoping**: Performance optimization - only scan active directory
+
+### Important Implementation Details
+
+#### Directives (21 total)
+All defined in `src/constants/directives.ts`:
+- Core: `data-wp-interactive`, `data-wp-context`
+- Attributes: `data-wp-bind`, `data-wp-class`, `data-wp-style`, `data-wp-text`
+- Events: `data-wp-on*` variants (6 types)
+- Side Effects: `data-wp-watch`, `data-wp-init`, `data-wp-run`
+- Lists: `data-wp-key`, `data-wp-each`, `data-wp-each-child`
+
+#### Duplication Rules
+- Cannot duplicate: `data-wp-interactive`, `data-wp-context`, `data-wp-text`
+- Require unique suffix: `data-wp-bind`, `data-wp-class`, `data-wp-style`
+- Allow multiple with IDs: Event handlers, watch, init, run
+
+#### Store Parsing
+- **PHP**: Finds `wp_interactivity_state('namespace', array(...))`
+- **JavaScript**: Finds `store('namespace', { state, actions, callbacks })`
+- **Context**: Parses `data-wp-context='{"prop": value}'` attributes
+
+## File Structure Reference
+
+```
+src/
+├── extension.ts                      # Entry point, provider registration
+├── constants/directives.ts           # All 21 directives with metadata
+├── models/
+│   ├── directive.ts                  # DirectiveInfo, DirectiveDefinition types
+│   └── store.ts                      # StoreDefinition, PropertyInfo types
+├── parsers/
+│   ├── storeParser.ts                # StoreRegistry class (central store)
+│   ├── phpStoreParser.ts             # PhpStoreParser (wp_interactivity_state)
+│   ├── jsStoreParser.ts              # JsStoreParser (store() calls)
+│   └── contextParser.ts              # ContextParser (inline contexts)
+├── providers/
+│   ├── directiveCompletionProvider.ts  # DirectiveCompletionProvider
+│   └── valueCompletionProvider.ts      # ValueCompletionProvider
+├── utils/
+│   ├── htmlParser.ts                 # HTML parsing in PHP/HTML files
+│   ├── documentParser.ts             # Context detection, position utilities
+│   └── workspaceScanner.ts           # Directory-scoped file scanning
+└── validators/
+    └── duplicateValidator.ts         # Duplicate directive detection
+```
+
+## Development Commands
+- `npm install` - Install dependencies
+- `npm run compile` - Build once
+- `npm run watch` - Watch mode for development
+- `npm run package` - Production build
+- `F5` in VSCode - Launch Extension Development Host
+
+## Testing Approach
+1. Create test directory with store.js (or PHP file with wp_interactivity_state)
+2. Create template.php in same directory
+3. Type `data-` to see directive suggestions
+4. Type `state.` in directive value to see property suggestions
+
+## Configuration Options
+- `wpInteractivityAPI.enableDirectiveCompletion` (default: true)
+- `wpInteractivityAPI.enableValueCompletion` (default: true)
+- `wpInteractivityAPI.enableDuplicateWarnings` (default: true)
+- `wpInteractivityAPI.parseInlineContexts` (default: true)
+
+## Important Context for AI Agents
+
+### When Adding Features
+1. Read `src/constants/directives.ts` for directive definitions
+2. Check `src/models/*.ts` for type definitions
+3. Follow existing patterns (see similar implementations)
+4. Update README.md if user-facing feature
+
+### When Fixing Bugs
+1. Check which component is involved (parser, provider, validator)
+2. Review the implementation plan at `.claude/plans/breezy-gliding-nova.md`
+3. Test in Extension Development Host (F5)
+
+### When Optimizing
+- Priority: Completion speed (must be <100ms)
+- Directory scoping is intentional (performance)
+- Store registry uses Map for O(1) lookups
+- HTML parsing is tolerant (handles incomplete markup)
+
+### Code Style
+- Use TypeScript strict mode
+- Prefix unused parameters with `_` (e.g., `_token`)
+- Use descriptive variable names
+- Document public methods with JSDoc comments
+- Follow VSCode Extension API patterns
+
+## Current State
+✅ All Phase 1-5 features implemented and working
+⏳ Testing phase - needs more comprehensive tests
+📋 Future: Tests, hover docs, go-to-definition
+
+## References for Context
+- Implementation plan: `.claude/plans/breezy-gliding-nova.md`
+- Development guide: `DEVELOPMENT.md`
+- Contributing guide: `CONTRIBUTING.md`
+- WordPress Interactivity API: https://developer.wordpress.org/block-editor/reference-guides/interactivity-api/
