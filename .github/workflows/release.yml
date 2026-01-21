@@ -7,6 +7,8 @@ on:
 jobs:
   build-and-attach:
     runs-on: ubuntu-latest
+    permissions:
+      contents: write
 
     steps:
       - name: Checkout code
@@ -29,11 +31,6 @@ jobs:
         run: echo "version=$(node -p "require('./package.json').version")" >> $GITHUB_OUTPUT
 
       - name: Upload VSIX to release
-        uses: actions/upload-release-asset@v1
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        uses: softprops/action-gh-release@v2
         with:
-          upload_url: ${{ github.event.release.upload_url }}
-          asset_path: ./wordpress-interactivity-api-helper-${{ steps.package-version.outputs.version }}.vsix
-          asset_name: wordpress-interactivity-api-helper-${{ steps.package-version.outputs.version }}.vsix
-          asset_content_type: application/octet-stream
+          files: wordpress-interactivity-api-helper-${{ steps.package-version.outputs.version }}.vsix
