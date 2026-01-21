@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Test Inline Context Autocomplete</title>
+</head>
+<body>
+    <!-- Test Case 1: Basic inline context -->
+    <div data-wp-interactive="myPlugin"
+         data-wp-context='{"postId": 123, "isActive": true, "userName": "test"}'>
+        <span data-wp-text="context.">
+            <!-- Type "context." here to test - should suggest: postId, isActive, userName -->
+        </span>
+    </div>
+
+    <!-- Test Case 2: Nested contexts (closest wins) -->
+    <div data-wp-context='{"outer": true}'>
+        <div data-wp-context='{"inner": true, "nestedValue": 42}'>
+            <span data-wp-text="context.">
+                <!-- Type "context." here - should suggest: inner, nestedValue -->
+            </span>
+        </div>
+    </div>
+
+    <!-- Test Case 3: State vs Context -->
+    <div data-wp-interactive="myPlugin"
+         data-wp-context='{"contextProp": "value"}'>
+        <span data-wp-text="state.">
+            <!-- Type "state." here - should suggest store properties -->
+        </span>
+        <span data-wp-text="context.">
+            <!-- Type "context." here - should suggest: contextProp -->
+        </span>
+    </div>
+
+    <!-- Test Case 4: No inline context (fallback to store) -->
+    <div data-wp-interactive="myPlugin">
+        <span data-wp-text="context.">
+            <!-- Type "context." here - should fallback to store properties -->
+        </span>
+    </div>
+
+    <!-- Test Case 5: Prefix filtering -->
+    <div data-wp-context='{"postId": 123, "postTitle": "Test", "isActive": true}'>
+        <span data-wp-text="context.p">
+            <!-- Type "context.p" here - should suggest only: postId, postTitle -->
+        </span>
+    </div>
+</body>
+</html>
