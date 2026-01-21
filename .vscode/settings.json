@@ -1,22 +1,13 @@
 {
-  "editor.formatOnSave": true,
-  "editor.codeActionsOnSave": {
-    "source.fixAll.eslint": "explicit"
-  },
-  "eslint.validate": [
-    "typescript"
-  ],
-  "typescript.tsdk": "node_modules/typescript/lib",
-  "files.exclude": {
-    "out": true,
-    "dist": true,
-    "node_modules": true,
-    "**/*.vsix": true
-  },
-  "search.exclude": {
-    "out": true,
-    "dist": true,
-    "node_modules": true,
-    "**/*.vsix": true
-  }
+	"editor.formatOnSave": true,
+	"editor.codeActionsOnSave": {
+		"source.fixAll.eslint": "explicit"
+	},
+	"eslint.validate": ["typescript"],
+	"typescript.tsdk": "node_modules/typescript/lib",
+	"search.exclude": {
+		"dist": true,
+		"node_modules": true,
+		"**/*.vsix": true
+	}
 }
