@@ -47,17 +47,34 @@ export class ContextParser {
 			// Try direct parse first
 			return JSON.parse(value);
 		} catch (error) {
-			// Try to fix common issues
+			// Try to fix common issues with single-pass counting
 			let fixed = value;
 
-			// Add missing closing brace
-			if ((fixed.match(/{/g) || []).length > (fixed.match(/}/g) || []).length) {
-				fixed += '}';
+			// Count all bracket types in one pass
+			const brackets = fixed.match(/[{}\[\]]/g) || [];
+			let openBraces = 0;
+			let closeBraces = 0;
+			let openBrackets = 0;
+			let closeBrackets = 0;
+
+			for (const char of brackets) {
+				if (char === '{') {
+					openBraces++;
+				} else if (char === '}') {
+					closeBraces++;
+				} else if (char === '[') {
+					openBrackets++;
+				} else if (char === ']') {
+					closeBrackets++;
+				}
 			}
 
-			// Add missing closing bracket
-			if ((fixed.match(/\[/g) || []).length > (fixed.match(/\]/g) || []).length) {
-				fixed += ']';
+			// Add missing closing brackets
+			if (openBraces > closeBraces) {
+				fixed += '}'.repeat(openBraces - closeBraces);
+			}
+			if (openBrackets > closeBrackets) {
+				fixed += ']'.repeat(openBrackets - closeBrackets);
 			}
 
 			// Try again

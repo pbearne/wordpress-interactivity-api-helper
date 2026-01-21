@@ -8,11 +8,34 @@ import { HtmlParser } from '../utils/htmlParser';
  */
 export class DuplicateValidator {
 	private diagnosticCollection: vscode.DiagnosticCollection;
+	private validationTimers: Map<string, NodeJS.Timeout> = new Map();
+	private readonly VALIDATION_DELAY = 500; // ms
 
 	constructor() {
 		this.diagnosticCollection = vscode.languages.createDiagnosticCollection(
 			'wordpress-interactivity-api'
 		);
+	}
+
+	/**
+	 * Schedule validation with debounce
+	 */
+	public scheduleValidation(document: vscode.TextDocument): void {
+		const uri = document.uri.toString();
+
+		// Clear existing timer for this document
+		const existingTimer = this.validationTimers.get(uri);
+		if (existingTimer) {
+			clearTimeout(existingTimer);
+		}
+
+		// Schedule new validation
+		const timer = setTimeout(() => {
+			this.validateDocument(document);
+			this.validationTimers.delete(uri);
+		}, this.VALIDATION_DELAY);
+
+		this.validationTimers.set(uri, timer);
 	}
 
 	/**
@@ -212,6 +235,11 @@ export class DuplicateValidator {
 	 * Dispose of the diagnostic collection
 	 */
 	public dispose(): void {
+		// Clear all pending validation timers
+		for (const timer of this.validationTimers.values()) {
+			clearTimeout(timer);
+		}
+		this.validationTimers.clear();
 		this.diagnosticCollection.dispose();
 	}
 }

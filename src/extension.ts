@@ -53,20 +53,7 @@ export function activate(context: vscode.ExtensionContext) {
 		);
 	}
 
-	// Scan directory when a document is opened or switched
-	context.subscriptions.push(
-		vscode.window.onDidChangeActiveTextEditor(async editor => {
-			if (editor) {
-				const document = editor.document;
-				if (document.languageId === 'php' || document.languageId === 'html') {
-					console.log('[WP Interactivity API] Scanning directory for:', document.uri.fsPath);
-					await workspaceScanner.scanActiveDirectory();
-				}
-			}
-		})
-	);
-
-	// Also scan on activation if there's an active editor
+	// Scan on activation if there's an active editor
 	if (vscode.window.activeTextEditor) {
 		const document = vscode.window.activeTextEditor.document;
 		if (document.languageId === 'php' || document.languageId === 'html') {
@@ -75,12 +62,12 @@ export function activate(context: vscode.ExtensionContext) {
 		}
 	}
 
-	// Validate documents for duplicate directives on change
+	// Validate documents for duplicate directives on change (debounced)
 	context.subscriptions.push(
 		vscode.workspace.onDidChangeTextDocument(event => {
 			const document = event.document;
 			if (document.languageId === 'php' || document.languageId === 'html') {
-				duplicateValidator.validateDocument(document);
+				duplicateValidator.scheduleValidation(document);
 			}
 		})
 	);

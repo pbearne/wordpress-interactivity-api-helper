@@ -3,9 +3,62 @@ import { parse, HTMLElement } from 'node-html-parser';
 import { DirectiveInfo } from '../models/directive';
 
 /**
+ * Cache entry for parsed HTML documents
+ */
+interface ParseCacheEntry {
+	version: number;
+	root: HTMLElement;
+	timestamp: number;
+}
+
+/**
+ * Simple LRU cache implementation
+ */
+class LRUCache<K, V> {
+	private cache = new Map<K, V>();
+	private maxSize: number;
+
+	constructor(maxSize: number = 20) {
+		this.maxSize = maxSize;
+	}
+
+	get(key: K): V | undefined {
+		const value = this.cache.get(key);
+		if (value) {
+			// Move to end (most recently used)
+			this.cache.delete(key);
+			this.cache.set(key, value);
+		}
+		return value;
+	}
+
+	set(key: K, value: V): void {
+		// Remove if exists (to update position)
+		this.cache.delete(key);
+
+		// Add to end
+		this.cache.set(key, value);
+
+		// Remove oldest if over capacity
+		if (this.cache.size > this.maxSize) {
+			const firstKey = this.cache.keys().next().value;
+			if (firstKey !== undefined) {
+				this.cache.delete(firstKey);
+			}
+		}
+	}
+
+	clear(): void {
+		this.cache.clear();
+	}
+}
+
+/**
  * Utility class for parsing HTML in PHP and HTML files
  */
 export class HtmlParser {
+	private static parseCache = new LRUCache<string, ParseCacheEntry>(20);
+	private static readonly CACHE_TTL = 5000; // 5 seconds
 	/**
 	 * Find the HTML element at the given position in the document
 	 */
@@ -14,28 +67,54 @@ export class HtmlParser {
 		position: vscode.Position
 	): HTMLElement | null {
 		try {
-			// Get the text content around the position
-			const text = document.getText();
+			// Check cache first
+			const cacheKey = document.uri.toString();
+			const cached = this.parseCache.get(cacheKey);
+			const now = Date.now();
 
-			// Parse HTML with tolerant mode
-			const root = parse(text, {
-				lowerCaseTagName: false,
-				comment: false,
-				blockTextElements: {
-					script: false,
-					noscript: false,
-					style: false,
-					pre: false
-				}
-			});
+			let root: HTMLElement;
+
+			if (cached &&
+				cached.version === document.version &&
+				(now - cached.timestamp) < this.CACHE_TTL) {
+				// Use cached parse result
+				root = cached.root;
+			} else {
+				// Parse and cache
+				const text = document.getText();
+				root = parse(text, {
+					lowerCaseTagName: false,
+					comment: false,
+					blockTextElements: {
+						script: false,
+						noscript: false,
+						style: false,
+						pre: false
+					}
+				});
+
+				// Store in cache
+				this.parseCache.set(cacheKey, {
+					version: document.version,
+					root: root,
+					timestamp: now
+				});
+			}
 
 			// Find element containing the cursor position
 			const offset = document.offsetAt(position);
-			return this.findElementByOffset(root, offset, text);
+			return this.findElementByOffset(root, offset, document.getText());
 		} catch (error) {
 			// If parsing fails, return null
 			return null;
 		}
+	}
+
+	/**
+	 * Clear the parse cache (useful for testing or on dispose)
+	 */
+	public static clearCache(): void {
+		this.parseCache.clear();
 	}
 
 	/**
