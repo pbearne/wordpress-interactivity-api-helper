@@ -5,19 +5,13 @@ Intelligent autocomplete and validation for WordPress Interactivity API directiv
 ## Features
 
 - 🎯 **Directive Autocomplete**: Get intelligent suggestions for all `data-wp-*` directives as you type
+- 🔍 **Context-Aware Value Suggestions**: Autocomplete for state, actions, and callbacks based on detected stores
 - ⚠️ **Duplicate Detection**: Warnings for improperly duplicated directives on the same element
-- 🔍 **Context-Aware Value Suggestions**: Autocomplete for state, context, actions, and callbacks based on detected stores
-- 📁 **Directory-Scoped Store Detection**: Automatically discovers store definitions from PHP and JavaScript files in the same directory
+- 🚨 **Namespace Validation**: Warnings when using undefined store namespaces with typo suggestions
+- 📁 **Directory-Scoped Store Detection**: Automatically discovers store definitions from PHP and JavaScript/TypeScript files
 - 📝 **Inline Context Parsing**: Suggests properties from inline `data-wp-context` attributes
-
-## Installation
-
-### From Source
-
-1. Clone this repository
-2. Run `npm install` to install dependencies
-3. Run `npm run compile` to build the extension
-4. Press F5 in VSCode to launch the extension in development mode
+- 🔄 **Multiline Attribute Support**: Autocomplete works across multiline HTML attributes
+- 💾 **Smart Caching**: File watcher automatically updates stores when files change
 
 ## Usage
 
@@ -45,9 +39,40 @@ When writing directive values, the extension will suggest available properties f
 </div>
 ```
 
+## Commands
+
+The extension provides the following commands (accessible via Command Palette `Cmd+Shift+P` / `Ctrl+Shift+P`):
+
+- **WordPress Interactivity API: Refresh Store Cache** - Manually refresh the store cache to pick up changes from store files
+- **WordPress Interactivity API: Show Available Stores** - Display all currently detected stores with their state, actions, and callbacks count
+
+## Validation & Diagnostics
+
+### Duplicate Directive Detection
+
+The extension warns you when directives are improperly duplicated on the same element:
+
+```html
+<!-- ⚠️ Warning: Duplicate data-wp-on--click directive -->
+<button
+  data-wp-on--click="actions.open"
+  data-wp-on--click="actions.close">
+</button>
+```
+
+### Namespace Validation
+
+Get warnings when using undefined store namespaces, with intelligent typo suggestions:
+
+```html
+<!-- ⚠️ Warning: No store found for namespace "my-stor". Did you mean "my-store"? -->
+<div data-wp-interactive="my-stor">
+</div>
+```
+
 ### Store Detection
 
-The extension automatically scans PHP and JavaScript files in the same directory for store definitions:
+The extension automatically scans PHP and JavaScript/TypeScript files in the same directory for store definitions:
 
 **PHP:**
 ```php
@@ -57,7 +82,7 @@ wp_interactivity_state('myPlugin', array(
 ));
 ```
 
-**JavaScript:**
+**JavaScript/TypeScript (Inline):**
 ```javascript
 import { store } from '@wordpress/interactivity';
 
@@ -70,6 +95,39 @@ store('myPlugin', {
         toggle: () => { /* ... */ }
     }
 });
+```
+
+**TypeScript (Variable Reference with Generics):**
+```typescript
+import { store } from '@wordpress/interactivity';
+
+// Define server-side state type
+type MyPluginServerState = {
+    state: {
+        counter: number;
+        isOpen: boolean;
+    };
+};
+
+// Define client-side store
+const myPluginStore = {
+    state: {},
+    actions: {
+        increment() {
+            state.counter++;
+        },
+        toggle() {
+            state.isOpen = !state.isOpen;
+        }
+    },
+    callbacks: {}
+};
+
+// Merge server and client types
+type MyPluginStore = MyPluginServerState & typeof myPluginStore;
+
+// Create typed store
+const { state } = store<MyPluginStore>('myPlugin', myPluginStore);
 ```
 
 ## Configuration
@@ -142,6 +200,36 @@ Initial release with basic directive autocomplete, duplicate detection, and stor
 
 Contributions are welcome! Please feel free to submit issues or pull requests.
 
+## What Gets Autocompleted?
+
+### Directives
+- All `data-wp-*` directives with descriptions and examples
+- Proper suffix patterns (e.g., `data-wp-bind--[attribute]`)
+
+### State Properties
+When typing `state.` the extension suggests:
+- Properties from the current namespace's store
+- Properties from inline `data-wp-context` attributes
+- Nested object properties
+
+### Actions
+When typing `actions.` the extension suggests:
+- All actions defined in the current namespace's store
+- Function signatures with parameter information
+
+### Callbacks
+When typing `callbacks.` the extension suggests:
+- All callbacks defined in the current namespace's store
+- Used with `data-wp-watch`, `data-wp-init`, etc.
+
+## Supported File Types
+
+- **PHP** (`.php`) - For templates and store definitions via `wp_interactivity_state()`
+- **HTML** (`.html`) - For static templates
+- **JavaScript** (`.js`) - For store definitions
+- **TypeScript** (`.ts`, `.tsx`) - For typed store definitions
+- **JSX** (`.jsx`) - For React-based stores
+
 ## License
 
-MIT
+GPL-3.0
