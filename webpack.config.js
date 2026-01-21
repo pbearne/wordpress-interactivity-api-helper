@@ -4,6 +4,12 @@ const path = require('path');
 const config = {
   target: 'node',
   mode: 'none',
+  cache: {
+    type: 'filesystem',
+    buildDependencies: {
+      config: [__filename]
+    }
+  },
 
   entry: './src/extension.ts',
   output: {
