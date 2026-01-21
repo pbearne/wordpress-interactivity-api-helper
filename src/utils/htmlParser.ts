@@ -241,4 +241,115 @@ export class HtmlParser {
 
 		return null;
 	}
+
+	/**
+	 * Find the nearest data-wp-context attribute by walking up the element tree
+	 */
+	public static findNearestContextAttribute(
+		document: vscode.TextDocument,
+		position: vscode.Position
+	): string | null {
+		console.log('[WP Interactivity API] Finding nearest context attribute...');
+
+		// Try the DOM-based approach first
+		const element = this.findElementAtPosition(document, position);
+		console.log('[WP Interactivity API] findElementAtPosition returned:', element ? element.tagName : 'null');
+
+		if (element) {
+			// Check current element and ancestors for data-wp-context
+			let current: HTMLElement | null = element;
+			let depth = 0;
+			while (current) {
+				console.log(`[WP Interactivity API] Checking element at depth ${depth}:`, current.tagName);
+				const attributes = this.extractAttributes(current);
+				console.log('[WP Interactivity API] Attributes:', Array.from(attributes.keys()));
+
+				if (attributes.has('data-wp-context')) {
+					const contextValue = attributes.get('data-wp-context')!;
+					console.log('[WP Interactivity API] Found data-wp-context via DOM:', contextValue);
+					return contextValue;
+				}
+				// Move to parent
+				current = current.parentNode as HTMLElement;
+				depth++;
+			}
+			console.log('[WP Interactivity API] No data-wp-context found via DOM after checking', depth, 'elements');
+		}
+
+		// Fallback: Search backwards through text for data-wp-context
+		console.log('[WP Interactivity API] Trying text-based search...');
+		const textBefore = document.getText(
+			new vscode.Range(new vscode.Position(0, 0), position)
+		);
+		console.log('[WP Interactivity API] Text length before cursor:', textBefore.length);
+
+		// Find all opening tags with data-wp-context before the cursor
+		// Match: <tag ... data-wp-context='...' ...> or <tag ... data-wp-context="..." ...>
+		// Need to handle nested quotes in JSON, so we can't use [^'"]
+		// Instead, match everything until we find the closing quote that matches the opening one
+		const contextRegex = /data-wp-context\s*=\s*'([^']*)'|data-wp-context\s*=\s*"([^"]*)"/g;
+		let match;
+		let lastContext: string | null = null;
+		let lastContextPos = -1;
+		let matchCount = 0;
+
+		while ((match = contextRegex.exec(textBefore)) !== null) {
+			matchCount++;
+			// Group 1 is for single quotes, Group 2 is for double quotes
+			lastContext = match[1] || match[2];
+			lastContextPos = match.index;
+			console.log('[WP Interactivity API] Found context match #', matchCount, ':', lastContext);
+		}
+
+		console.log('[WP Interactivity API] Total context matches found:', matchCount);
+
+		if (lastContext && lastContextPos !== -1) {
+			console.log('[WP Interactivity API] Last context value:', lastContext);
+			console.log('[WP Interactivity API] Last context position:', lastContextPos);
+
+			// Find the tag name of the element with data-wp-context
+			// Need to search backwards to find the opening tag
+			const textBeforeContext = textBefore.substring(0, lastContextPos);
+			const lastOpenTag = textBeforeContext.lastIndexOf('<');
+
+			if (lastOpenTag !== -1) {
+				const tagText = textBefore.substring(lastOpenTag, lastContextPos + 100);
+				console.log('[WP Interactivity API] Tag text:', tagText);
+
+				const tagMatch = tagText.match(/<(\w+)/);
+
+				if (tagMatch) {
+					const tagName = tagMatch[1];
+					console.log('[WP Interactivity API] Tag name:', tagName);
+
+					// Check if we've encountered a closing tag for this element
+					const closingTagRegex = new RegExp(`</${tagName}>`, 'g');
+					const textAfterTag = textBefore.substring(lastContextPos);
+
+					// Count opening and closing tags
+					const openings = (textAfterTag.match(new RegExp(`<${tagName}[^/>]*>`, 'g')) || []).length;
+					const closings = (textAfterTag.match(closingTagRegex) || []).length;
+
+					console.log('[WP Interactivity API] After this tag - openings:', openings, 'closings:', closings);
+
+					// If closings >= openings + 1, we've left the element
+					if (closings < openings + 1) {
+						console.log('[WP Interactivity API] Found data-wp-context via text search:', lastContext);
+						return lastContext;
+					} else {
+						console.log('[WP Interactivity API] Already outside the element (closings >= openings + 1)');
+					}
+				} else {
+					console.log('[WP Interactivity API] Could not match tag name');
+				}
+			} else {
+				console.log('[WP Interactivity API] Could not find opening tag');
+			}
+		} else {
+			console.log('[WP Interactivity API] No context matches found or invalid position');
+		}
+
+		console.log('[WP Interactivity API] No data-wp-context found');
+		return null;
+	}
 }

@@ -2,13 +2,18 @@ import * as vscode from 'vscode';
 import { StoreRegistry } from '../parsers/storeParser';
 import { DocumentParser } from '../utils/documentParser';
 import { HtmlParser } from '../utils/htmlParser';
-import { StoreDefinition } from '../models/store';
+import { StoreDefinition, PropertyInfo } from '../models/store';
+import { ContextParser } from '../parsers/contextParser';
 
 /**
  * Completion provider for directive values (state, context, actions, callbacks)
  */
 export class ValueCompletionProvider implements vscode.CompletionItemProvider {
-	constructor(private registry: StoreRegistry) {}
+	private contextParser: ContextParser;
+
+	constructor(private registry: StoreRegistry) {
+		this.contextParser = new ContextParser();
+	}
 
 	/**
 	 * Provide completion items
@@ -47,6 +52,21 @@ export class ValueCompletionProvider implements vscode.CompletionItemProvider {
 
 		// Parse the value to understand what to suggest
 		const valueInfo = DocumentParser.parseValuePrefix(currentValue);
+
+		// Special handling for context. - check for inline data-wp-context first
+		if (valueInfo.type === 'context') {
+			console.log('[WP Interactivity API] Context type detected, looking for inline context...');
+			const inlineContext = HtmlParser.findNearestContextAttribute(document, position);
+			console.log('[WP Interactivity API] Inline context found:', inlineContext);
+			if (inlineContext) {
+				const contextProperties = this.contextParser.parseContextValue(inlineContext);
+				console.log('[WP Interactivity API] Context properties parsed:', contextProperties.size, 'properties');
+				if (contextProperties.size > 0) {
+					console.log('[WP Interactivity API] Returning context suggestions');
+					return this.getContextSuggestions(contextProperties, valueInfo.prefix, inlineContext);
+				}
+			}
+		}
 
 		// Find the namespace from the nearest data-wp-interactive
 		const namespace = valueInfo.namespace || DocumentParser.findNearestNamespace(document, position);
@@ -116,7 +136,12 @@ export class ValueCompletionProvider implements vscode.CompletionItemProvider {
 
 		switch (type) {
 			case 'state':
+				sourceMap = store.state;
+				itemKind = vscode.CompletionItemKind.Property;
+				break;
 			case 'context':
+				// Context is handled separately - inline context takes precedence
+				// If we're here, no inline context was found, fall back to store
 				sourceMap = store.state;
 				itemKind = vscode.CompletionItemKind.Property;
 				break;
@@ -160,6 +185,39 @@ export class ValueCompletionProvider implements vscode.CompletionItemProvider {
 						`\n\nDefined in: ${store.sourceFile}:${info.sourceLine}`
 					);
 				}
+
+				items.push(item);
+			}
+		}
+
+		return items;
+	}
+
+	/**
+	 * Get suggestions for inline context properties
+	 */
+	private getContextSuggestions(
+		properties: Map<string, PropertyInfo>,
+		prefix: string,
+		contextValue: string
+	): vscode.CompletionItem[] {
+		const items: vscode.CompletionItem[] = [];
+
+		for (const [name, info] of properties.entries()) {
+			if (!prefix || name.startsWith(prefix)) {
+				const item = new vscode.CompletionItem(name, vscode.CompletionItemKind.Property);
+
+				// Add type information
+				if (info.type) {
+					item.detail = `(${info.type}) context.${name}`;
+				} else {
+					item.detail = `context.${name}`;
+				}
+
+				// Documentation
+				item.documentation = new vscode.MarkdownString(
+					`**context.${name}**\n\nFrom inline data-wp-context: \`${contextValue}\``
+				);
 
 				items.push(item);
 			}
