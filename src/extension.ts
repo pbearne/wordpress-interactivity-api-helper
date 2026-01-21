@@ -2,6 +2,7 @@ import * as vscode from 'vscode';
 import { DirectiveCompletionProvider } from './providers/directiveCompletionProvider';
 import { ValueCompletionProvider } from './providers/valueCompletionProvider';
 import { DuplicateValidator } from './validators/duplicateValidator';
+import { NamespaceValidator } from './validators/namespaceValidator';
 import { StoreRegistry } from './parsers/storeParser';
 import { WorkspaceScanner } from './utils/workspaceScanner';
 
@@ -17,8 +18,9 @@ export function activate(context: vscode.ExtensionContext) {
 	// Initialize workspace scanner
 	const workspaceScanner = new WorkspaceScanner(storeRegistry);
 
-	// Initialize duplicate validator
+	// Initialize validators
 	const duplicateValidator = new DuplicateValidator();
+	const namespaceValidator = new NamespaceValidator(storeRegistry);
 
 	// Initialize completion providers
 	const directiveCompletionProvider = new DirectiveCompletionProvider();
@@ -62,12 +64,13 @@ export function activate(context: vscode.ExtensionContext) {
 		}
 	}
 
-	// Validate documents for duplicate directives on change (debounced)
+	// Validate documents for duplicate directives and namespaces on change (debounced)
 	context.subscriptions.push(
 		vscode.workspace.onDidChangeTextDocument(event => {
 			const document = event.document;
 			if (document.languageId === 'php' || document.languageId === 'html') {
 				duplicateValidator.scheduleValidation(document);
+				namespaceValidator.scheduleValidation(document);
 			}
 		})
 	);
@@ -79,6 +82,7 @@ export function activate(context: vscode.ExtensionContext) {
 				const document = editor.document;
 				if (document.languageId === 'php' || document.languageId === 'html') {
 					duplicateValidator.validateDocument(document);
+					namespaceValidator.validateDocument(document);
 				}
 			}
 		})
@@ -89,6 +93,7 @@ export function activate(context: vscode.ExtensionContext) {
 		const document = vscode.window.activeTextEditor.document;
 		if (document.languageId === 'php' || document.languageId === 'html') {
 			duplicateValidator.validateDocument(document);
+			namespaceValidator.validateDocument(document);
 		}
 	}
 
@@ -97,6 +102,15 @@ export function activate(context: vscode.ExtensionContext) {
 		vscode.commands.registerCommand('wpInteractivityAPI.refreshStores', async () => {
 			storeRegistry.clear();
 			await workspaceScanner.scanActiveDirectory();
+
+			// Revalidate the current document after stores are refreshed
+			if (vscode.window.activeTextEditor) {
+				const document = vscode.window.activeTextEditor.document;
+				if (document.languageId === 'php' || document.languageId === 'html') {
+					namespaceValidator.validateDocument(document);
+				}
+			}
+
 			vscode.window.showInformationMessage(
 				'WordPress Interactivity API: Store cache refreshed'
 			);
@@ -135,6 +149,7 @@ export function activate(context: vscode.ExtensionContext) {
 	context.subscriptions.push({
 		dispose: () => {
 			duplicateValidator.dispose();
+			namespaceValidator.dispose();
 			workspaceScanner.dispose();
 		}
 	});

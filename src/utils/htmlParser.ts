@@ -256,20 +256,29 @@ export class HtmlParser {
 		document: vscode.TextDocument,
 		position: vscode.Position
 	): boolean {
-		const line = document.lineAt(position.line);
-		const textBeforeCursor = line.text.substring(0, position.character);
+		// Get text from start of document to cursor (to handle multiline tags)
+		const textBeforeCursor = document.getText(
+			new vscode.Range(new vscode.Position(0, 0), position)
+		);
 
-		// Check if we're inside an HTML tag
+		// Find the last opening and closing tag brackets
 		const lastOpenBracket = textBeforeCursor.lastIndexOf('<');
 		const lastCloseBracket = textBeforeCursor.lastIndexOf('>');
 
+		// Must be inside a tag (after < and before >)
 		if (lastOpenBracket === -1 || lastCloseBracket > lastOpenBracket) {
 			return false;
 		}
 
-		// Check if we're not inside quotes
-		const quotes = textBeforeCursor.match(/["']/g);
-		if (quotes && quotes.length % 2 !== 0) {
+		// Get the text within the current tag
+		const tagContent = textBeforeCursor.substring(lastOpenBracket);
+
+		// Check if we're not inside quotes (count quotes to see if we're between a pair)
+		const doubleQuotes = (tagContent.match(/"/g) || []).length;
+		const singleQuotes = (tagContent.match(/'/g) || []).length;
+
+		// If odd number of quotes, we're inside a quoted value
+		if (doubleQuotes % 2 !== 0 || singleQuotes % 2 !== 0) {
 			return false;
 		}
 
@@ -283,20 +292,26 @@ export class HtmlParser {
 		document: vscode.TextDocument,
 		position: vscode.Position
 	): boolean {
-		const line = document.lineAt(position.line);
-		const textBeforeCursor = line.text.substring(0, position.character);
+		// Get text from start of document to cursor (to handle multiline tags)
+		const textBeforeCursor = document.getText(
+			new vscode.Range(new vscode.Position(0, 0), position)
+		);
 
-		// Check if we're inside an HTML tag
+		// Find the last opening and closing tag brackets
 		const lastOpenBracket = textBeforeCursor.lastIndexOf('<');
 		const lastCloseBracket = textBeforeCursor.lastIndexOf('>');
 
+		// Must be inside a tag (after < and before >)
 		if (lastOpenBracket === -1 || lastCloseBracket > lastOpenBracket) {
 			return false;
 		}
 
+		// Get the text within the current tag
+		const tagContent = textBeforeCursor.substring(lastOpenBracket);
+
 		// Check if we're inside quotes (odd number of quotes means we're inside)
-		const doubleQuotes = (textBeforeCursor.match(/"/g) || []).length;
-		const singleQuotes = (textBeforeCursor.match(/'/g) || []).length;
+		const doubleQuotes = (tagContent.match(/"/g) || []).length;
+		const singleQuotes = (tagContent.match(/'/g) || []).length;
 
 		// We're in a value if we have an odd number of quotes
 		return (doubleQuotes % 2 !== 0) || (singleQuotes % 2 !== 0);
@@ -309,11 +324,23 @@ export class HtmlParser {
 		document: vscode.TextDocument,
 		position: vscode.Position
 	): string | null {
-		const line = document.lineAt(position.line);
-		const textBeforeCursor = line.text.substring(0, position.character);
+		// Get text from start of document to cursor (to handle multiline attributes)
+		const textBeforeCursor = document.getText(
+			new vscode.Range(new vscode.Position(0, 0), position)
+		);
+
+		// Find the last opening tag bracket
+		const lastOpenBracket = textBeforeCursor.lastIndexOf('<');
+		if (lastOpenBracket === -1) {
+			return null;
+		}
+
+		// Get the text within the current tag
+		const tagContent = textBeforeCursor.substring(lastOpenBracket);
 
 		// Look for the attribute name before the cursor
-		const attrMatch = textBeforeCursor.match(/(\S+?)\s*=\s*["'][^"']*$/);
+		// Match: attribute-name="value or attribute-name='value
+		const attrMatch = tagContent.match(/(\S+?)\s*=\s*["'][^"']*$/);
 		if (attrMatch) {
 			return attrMatch[1];
 		}
