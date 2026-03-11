@@ -1,7 +1,7 @@
 plugins {
     id("java")
-    id("org.jetbrains.intellij") version "1.17.2"
-    id("org.jetbrains.kotlin.jvm") version "1.9.22"
+    id("org.jetbrains.intellij.platform") version "2.1.0"
+    id("org.jetbrains.kotlin.jvm") version "2.0.21"
 }
 
 group = "com.ryanwelcher"
@@ -9,23 +9,43 @@ version = "1.0.0"
 
 repositories {
     mavenCentral()
+    intellijPlatform {
+        defaultRepositories()
+    }
 }
 
-intellij {
-    version.set("2023.3")
-    type.set("PS") // PHPStorm
+dependencies {
+    intellijPlatform {
+        phpstorm("2024.3")
+        jetbrainsRuntime()
 
-    plugins.set(listOf("com.jetbrains.php:233.11799.297", "JavaScript", "HtmlTools"))
+        // Plugins: com.jetbrains.php, JavaScript, HtmlTools
+        bundledPlugin("com.jetbrains.php")
+        bundledPlugin("JavaScript")
+        bundledPlugin("HtmlTools")
+        instrumentationTools()
+    }
+}
+
+intellijPlatform {
+    pluginConfiguration {
+        id.set("com.ryanwelcher.wordpress-interactivity-api-helper")
+        name.set("WordPress Interactivity API Helper")
+    }
 }
 
 tasks {
-    withType<org.jetbrains.kotlin.gradle.tasks.KotlinCompile> {
-        kotlinOptions.jvmTarget = "17"
+    withType<JavaCompile>().configureEach {
+        options.release.set(21)
+    }
+
+    withType<org.jetbrains.kotlin.gradle.tasks.KotlinCompile>().configureEach {
+        compilerOptions.jvmTarget.set(org.jetbrains.kotlin.gradle.dsl.JvmTarget.JVM_21)
     }
 
     patchPluginXml {
-        sinceBuild.set("233")
-        untilBuild.set("241.*")
+        sinceBuild.set("243")
+        untilBuild.set("253.*")
     }
 
     signPlugin {

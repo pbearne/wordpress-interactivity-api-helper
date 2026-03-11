@@ -1,0 +1,17 @@
+<ivy-module version="2.0">
+  <info organisation="bundledPlugin" module="com.jetbrains.restClient" revision="243.21565.202+282"/>
+  <configurations>
+    <conf name="default" visibility="public"/>
+  </configurations>
+  <publications>
+    <artifact name="/Users/pbear/.gradle/caches/9.0.0/transforms/9dffe58409395cbf08dbb5d0ce1132d5/transformed/PhpStorm-2024.3-win/plugins/restClient" type="directory" conf="default"/>
+  </publications>
+  <dependencies>
+    <dependency org="bundledPlugin" name="com.intellij.platform.images" rev="243.21565.202+135"/>
+    <dependency org="bundledPlugin" name="com.intellij.modules.json" rev="243.21565.202+669"/>
+    <dependency org="bundledPlugin" name="org.intellij.intelliLang" rev="243.21565.202+26"/>
+    <dependency org="bundledPlugin" name="com.intellij.jsonpath" rev="243.21565.202+920"/>
+    <dependency org="bundledPlugin" name="XPathView" rev="243.21565.202+390"/>
+    <dependency org="bundledModule" name="intellij.libraries.ktor.client.cio" rev="243.21565.202+27"/>
+  </dependencies>
+</ivy-module>

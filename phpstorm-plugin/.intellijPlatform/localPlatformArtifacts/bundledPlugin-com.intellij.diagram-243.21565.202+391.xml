@@ -1,0 +1,12 @@
+<ivy-module version="2.0">
+  <info organisation="bundledPlugin" module="com.intellij.diagram" revision="243.21565.202+391"/>
+  <configurations>
+    <conf name="default" visibility="public"/>
+  </configurations>
+  <publications>
+    <artifact name="/Users/pbear/.gradle/caches/9.0.0/transforms/9dffe58409395cbf08dbb5d0ce1132d5/transformed/PhpStorm-2024.3-win/plugins/uml" type="directory" conf="default"/>
+  </publications>
+  <dependencies>
+    <dependency org="bundledModule" name="intellij.platform.navbar.frontend" rev="243.21565.202+27"/>
+  </dependencies>
+</ivy-module>

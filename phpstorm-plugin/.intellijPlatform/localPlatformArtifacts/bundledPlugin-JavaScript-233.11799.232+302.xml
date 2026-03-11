@@ -1,0 +1,26 @@
+<ivy-module version="2.0">
+  <info organisation="bundledPlugin" module="JavaScript" revision="233.11799.232+302"/>
+  <configurations>
+    <conf name="default" visibility="public"/>
+  </configurations>
+  <publications>
+    <artifact name="/Users/pbear/.gradle/caches/9.0.0/transforms/c4b636be826cf79c823efbe94ef71a7a/transformed/PhpStorm-2023.3-win/plugins/javascript-impl" type="directory" conf="default"/>
+  </publications>
+  <dependencies>
+    <dependency org="bundledPlugin" name="com.intellij.completion.ml.ranking" rev="233.11799.232+827"/>
+    <dependency org="bundledPlugin" name="com.intellij.plugins.watcher" rev="233.11799.232+578"/>
+    <dependency org="bundledPlugin" name="org.intellij.intelliLang" rev="233.11799.232+259"/>
+    <dependency org="bundledPlugin" name="com.intellij.copyright" rev="233.11799.232+743"/>
+    <dependency org="bundledPlugin" name="org.jetbrains.plugins.terminal" rev="233.11799.232+930"/>
+    <dependency org="bundledPlugin" name="tanvd.grazi" rev="233.11799.232+342"/>
+    <dependency org="bundledPlugin" name="com.jetbrains.performancePlugin" rev="233.11799.232+158"/>
+    <dependency org="bundledPlugin" name="org.intellij.plugins.markdown" rev="233.11799.232+693"/>
+    <dependency org="bundledPlugin" name="Git4Idea" rev="233.11799.232+987"/>
+    <dependency org="bundledPlugin" name="com.intellij.css" rev="233.11799.232+264"/>
+    <dependency org="bundledPlugin" name="com.intellij.diagram" rev="233.11799.232+694"/>
+    <dependency org="bundledPlugin" name="intellij.indexing.shared.core" rev="233.11799.232+52"/>
+    <dependency org="bundledPlugin" name="intellij.indexing.shared" rev="233.11799.232+259"/>
+    <dependency org="bundledPlugin" name="com.jetbrains.sh" rev="233.11799.232+499"/>
+    <dependency org="bundledPlugin" name="JavaScriptDebugger" rev="233.11799.232+805"/>
+  </dependencies>
+</ivy-module>

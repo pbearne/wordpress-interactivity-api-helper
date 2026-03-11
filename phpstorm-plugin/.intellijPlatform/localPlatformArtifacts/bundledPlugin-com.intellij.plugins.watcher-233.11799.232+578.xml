@@ -1,0 +1,12 @@
+<ivy-module version="2.0">
+  <info organisation="bundledPlugin" module="com.intellij.plugins.watcher" revision="233.11799.232+578"/>
+  <configurations>
+    <conf name="default" visibility="public"/>
+  </configurations>
+  <publications>
+    <artifact name="/Users/pbear/.gradle/caches/9.0.0/transforms/c4b636be826cf79c823efbe94ef71a7a/transformed/PhpStorm-2023.3-win/plugins/fileWatcher" type="directory" conf="default"/>
+  </publications>
+  <dependencies>
+    <dependency org="bundledPlugin" name="com.jetbrains.plugins.webDeployment" rev="233.11799.232+445"/>
+  </dependencies>
+</ivy-module>

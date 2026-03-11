@@ -1,0 +1,21 @@
+<ivy-module version="2.0">
+  <info organisation="bundledPlugin" module="com.jetbrains.php" revision="2024.3+240"/>
+  <configurations>
+    <conf name="default" visibility="public"/>
+  </configurations>
+  <publications>
+    <artifact name="/Users/pbear/.gradle/caches/9.0.0/transforms/9dffe58409395cbf08dbb5d0ce1132d5/transformed/PhpStorm-2024.3-win/plugins/php-impl" type="directory" conf="default"/>
+  </publications>
+  <dependencies>
+    <dependency org="bundledPlugin" name="com.intellij.modules.json" rev="243.21565.202+669"/>
+    <dependency org="bundledPlugin" name="com.intellij.diagram" rev="243.21565.202+391"/>
+    <dependency org="bundledPlugin" name="com.jetbrains.plugins.webDeployment" rev="243.21565.202+966"/>
+    <dependency org="bundledPlugin" name="org.intellij.intelliLang" rev="243.21565.202+26"/>
+    <dependency org="bundledPlugin" name="com.jetbrains.restClient" rev="243.21565.202+282"/>
+    <dependency org="bundledPlugin" name="com.intellij.copyright" rev="243.21565.202+268"/>
+    <dependency org="bundledPlugin" name="com.jetbrains.performancePlugin" rev="243.21565.202+595"/>
+    <dependency org="bundledPlugin" name="com.intellij.dev" rev="243.21565.202+966"/>
+    <dependency org="bundledPlugin" name="org.jetbrains.plugins.terminal" rev="243.21565.202+97"/>
+    <dependency org="bundledPlugin" name="JavaScript" rev="243.21565.202+712"/>
+  </dependencies>
+</ivy-module>

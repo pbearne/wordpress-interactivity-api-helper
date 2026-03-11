@@ -1,0 +1,14 @@
+<ivy-module version="2.0">
+  <info organisation="bundledPlugin" module="com.jetbrains.sh" revision="233.11799.232+499"/>
+  <configurations>
+    <conf name="default" visibility="public"/>
+  </configurations>
+  <publications>
+    <artifact name="/Users/pbear/.gradle/caches/9.0.0/transforms/c4b636be826cf79c823efbe94ef71a7a/transformed/PhpStorm-2023.3-win/plugins/sh" type="directory" conf="default"/>
+  </publications>
+  <dependencies>
+    <dependency org="bundledPlugin" name="org.jetbrains.plugins.terminal" rev="233.11799.232+930"/>
+    <dependency org="bundledPlugin" name="com.intellij.copyright" rev="233.11799.232+743"/>
+    <dependency org="bundledPlugin" name="org.intellij.plugins.markdown" rev="233.11799.232+693"/>
+  </dependencies>
+</ivy-module>

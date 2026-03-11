@@ -1,0 +1,12 @@
+<ivy-module version="2.0">
+  <info organisation="bundledPlugin" module="HtmlTools" revision="2024.3+28"/>
+  <configurations>
+    <conf name="default" visibility="public"/>
+  </configurations>
+  <publications>
+    <artifact name="/Users/pbear/.gradle/caches/9.0.0/transforms/9dffe58409395cbf08dbb5d0ce1132d5/transformed/PhpStorm-2024.3-win/plugins/html-tools" type="directory" conf="default"/>
+  </publications>
+  <dependencies>
+    <dependency org="bundledPlugin" name="com.intellij.platform.images" rev="243.21565.202+135"/>
+  </dependencies>
+</ivy-module>
